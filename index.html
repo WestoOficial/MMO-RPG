@@ -485,76 +485,49 @@ body, .map, .chat, #chat-box {
   </div>
 </div>
 <!-- Tela de Criação de Mundo -->
-<div id="nickname-screen" style="display: none; position: fixed; top: 0; left: 0; 
-  width: 100%; height: 100%; background: #111; color: white; 
-  display: flex; justify-content: center; align-items: center; z-index: 2000;">
-  <div style="background: #222; padding: 30px; border-radius: 12px; 
-    border: 2px solid #555; box-shadow: 0 0 20px rgb(255, 196, 0); 
-    text-align: center; width: 720px; max-width: 95%;">
-    <h2>🌍 Painel de Criação de Mundo</h2>
-    <!-- Seção: Jogador -->
-    <section style="margin-bottom: 20px;">
-      <h3>👤 Jogador</h3>
-      <input type="text" id="nickname-input" placeholder="Seu nome no jogo" 
-        style="padding: 8px; margin-top: 10px; width: 90%; border-radius: 6px; 
-        border: none; background: #333; color: white;">
-    </section>
-    <!-- Seção: Mundo -->
-    <section style="margin-bottom: 20px;">
-      <h3>🌐 Mundo</h3>
-      <input type="text" id="world-name-input" placeholder="Nome do mundo" 
-        style="padding: 8px; margin: 10px 0; width: 90%; border-radius: 6px; 
-        border: none; background: #333; color: white;"><br>
-      <input type="text" id="world-seed-input" placeholder="Seed (opcional)" 
-        style="padding: 8px; margin: 10px 0; width: 90%; border-radius: 6px; 
-        border: none; background: #333; color: white;">
-    </section>
-    <!-- Seção: Dificuldade -->
-    <section style="margin-bottom: 20px;">
-      <h3>⚔️ Dificuldade</h3>
-      <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
-        <button style="padding: 8px 16px; background: #2e7d32; border: 2px solid #555; 
-          border-radius: 8px; cursor: pointer;">😌 Fácil</button>
-        <button style="padding: 8px 16px; background: #f9a825; border: 2px solid #555; 
-          border-radius: 8px; cursor: pointer;">🙂 Médio</button>
-        <button style="padding: 8px 16px; background: #c62828; border: 2px solid #555; 
-          border-radius: 8px; cursor: pointer;">💀 Difícil</button>
+<div id="nickname-screen" style="display:none; position:fixed; top:0; left:0;
+  width:100%; height:100%; background:#111; color:white;
+  display:flex; justify-content:center; align-items:center; z-index:2000;">
+  <div style="background:#222; padding:8px; border-radius:8px;
+    border:1px solid #555; box-shadow:0 0 12px rgb(255,196,0);
+    text-align:center; width:100%; max-width:600px;">
+    <h2 style="margin:6px 0; font-size:1rem;">🌍 Painel de Criação de Mundo</h2>
+    <!-- Jogador + Mundo lado a lado -->
+    <div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:12px;">
+      <section style="flex:1; min-width:160px;">
+        <h3 style="font-size:0.9rem; margin:4px 0;">👤 Jogador</h3>
+        <input type="text" id="nickname-input" placeholder="Seu nome no jogo"
+          style="padding:6px; width:95%; border-radius:6px; border:none; background:#333; color:white; font-size:0.85rem;">
+      </section>
+      <section style="flex:1; min-width:160px;">
+        <h3 style="font-size:0.9rem; margin:4px 0;">🌐 Mundo</h3>
+        <input type="text" id="world-name-input" placeholder="Nome do mundo"
+          style="padding:6px; width:95%; border-radius:6px; border:none; background:#333; color:white; font-size:0.85rem; margin-bottom:6px;">
+        <input type="text" id="world-seed-input" placeholder="Seed (opcional)"
+          style="padding:6px; width:95%; border-radius:6px; border:none; background:#333; color:white; font-size:0.85rem;">
+      </section>
+    </div>
+    <!-- Dificuldade -->
+    <section style="margin-bottom:12px;">
+      <h3 style="font-size:0.9rem; margin:4px 0;">⚔️ Dificuldade</h3>
+      <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+        <button style="flex:1; min-width:80px; padding:6px; font-size:0.8rem; background:#2e7d32; border:1px solid #555; border-radius:6px; cursor:pointer;">😌 Fácil</button>
+        <button style="flex:1; min-width:80px; padding:6px; font-size:0.8rem; background:#f9a825; border:1px solid #555; border-radius:6px; cursor:pointer;">🙂 Médio</button>
+        <button style="flex:1; min-width:80px; padding:6px; font-size:0.8rem; background:#c62828; border:1px solid #555; border-radius:6px; cursor:pointer;">💀 Difícil</button>
       </div>
     </section>
-    <!-- Seção: Mundos já criados -->
-    <section style="margin-bottom: 20px;">
-      <h3>📜 Mundos Criados</h3>
-      <ul style="list-style: none; padding: 0; text-align: left; max-height: 120px; 
-        overflow-y: auto; background: #333; border-radius: 6px; margin: 10px 0;">
-        <li>🌍 Mundo 1 - Seed: 12345</li>
-        <li>🌍 Mundo 2 - Seed: 98765</li>
-        <li>🌍 Mundo 3 - Seed: 54321</li>
-      </ul>
-    </section>
-    <!-- Seção: Multiplayer -->
-    <section style="margin-bottom: 20px;">
-      <h3>🌐 Multiplayer</h3>
-      <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px;">
-        <button style="padding: 10px 20px; background: #1976d2; color: white; 
-          border: 2px solid #555; border-radius: 8px; cursor: pointer;">
-          🎮 Jogar como Host
-        </button>
-        <button style="padding: 10px 20px; background: #6a1b9a; color: white; 
-          border: 2px solid #555; border-radius: 8px; cursor: pointer;">
-          🌐 Conectar a Servidor
-        </button>
+    <!-- Multiplayer -->
+    <section style="margin-bottom:12px;">
+      <h3 style="font-size:0.9rem; margin:4px 0;">🌐 Multiplayer</h3>
+      <div style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+        <button style="flex:1; min-width:100px; padding:8px; font-size:0.8rem; background:#1976d2; color:white; border:1px solid #555; border-radius:6px; cursor:pointer;">🎮 Host</button>
+        <button style="flex:1; min-width:100px; padding:8px; font-size:0.8rem; background:#6a1b9a; color:white; border:1px solid #555; border-radius:6px; cursor:pointer;">🌐 Servidor</button>
       </div>
     </section>
-    <!-- Seção: Ações -->
-    <section>
-      <button onclick="confirmNickname()" style="padding: 10px 20px; background: #333; color: white; 
-        border: 2px solid #555; border-radius: 8px; cursor: pointer; margin-top: 10px;">
-        ✅ Continuar
-      </button>
-      <button style="padding: 10px 20px; background: #444; color: white; 
-        border: 2px solid #555; border-radius: 8px; cursor: pointer; margin-top: 10px;">
-        ⚙️ Funções Extras
-      </button>
+    <!-- Ações -->
+    <section style="display:flex; justify-content:center; gap:6px; flex-wrap:wrap;">
+      <button onclick="confirmNickname()" style="flex:1; min-width:100px; padding:8px; font-size:0.85rem; background:#333; color:white; border:1px solid #555; border-radius:6px; cursor:pointer;">✅ Continuar</button>
+      <button style="flex:1; min-width:100px; padding:8px; font-size:0.85rem; background:#444; color:white; border:1px solid #555; border-radius:6px; cursor:pointer;">⚙️ Extras</button>
     </section>
   </div>
 </div>
@@ -3135,5 +3108,6 @@ function placeSmooth(x, y) {
 </body>
 
 </html>
+
 
 
