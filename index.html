@@ -144,6 +144,16 @@ body {
 #editor-panel button:hover {
   background-color: #666;
 }
+/* Botão de fechar fixo no topo */
+#close-panel {
+  position: sticky;
+  top: 0;
+  background-color: #222;
+  padding: 10px 16px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  z-index: 1001;
+}
 /* ==== [ TILES ] ==== */
 /* ==== [ NOTA - Adicionar 2 Clicks para player permitir rolagem ] ==== */
 .tile             { background-size: cover; transition: filter 1s ease; }
@@ -787,12 +797,12 @@ body, .map, .chat, #chat-box {
     </div>
   </div>
 <div id="editor-panel">
-  <h3>🛠️ Editor de Mapa</h3>
+  <h3>🛠️ Editor de Mapa <button id="close-panel" onclick="closeEditor()">❌ Fechar</button></h3>
   <div class="editor-section">
     <h4>👾 Criaturas</h4>
     <button onclick="createEnemy(gridX, gridY, 'cavalo')">🐎</button>
     <button onclick="createEnemy(gridX, gridY, 'crocodilo')">🐊</button>
-    <button onclick="spawnBoss  (gridX, gridY, 'Dragão')">🐉</button>
+    <button onclick="spawnBoss(gridX, gridY, 'Dragão')">🐉</button>
     <button onclick="createEnemy(gridX, gridY, 'dragaoanciao')">🐉</button>
     <button onclick="createEnemy(gridX, gridY, 'dragaoselvagem')">🐉</button>
     <button onclick="createEnemy(gridX, gridY, 'esqueleto')">💀</button>
@@ -813,17 +823,17 @@ body, .map, .chat, #chat-box {
     <button onclick="createEnemy(gridX, gridY, 'zumbi')">🧟</button>
   </div>
   <div class="editor-section">
-  <h4>🎒 Adicionar Itens à Mochila</h4>
-  <button onclick="addItemToBackpack('fruta')">🍎</button>
-  <button onclick="addItemToBackpack('poção')">🍷</button>
-  <button onclick="addItemToBackpack('pedra')">🪨</button>
-  <button onclick="addItemToBackpack('madeira')">🪵</button>
-  <button onclick="addItemToBackpack('tabua')">🧱</button>
-  <button onclick="addItemToBackpack('machado')">🪓</button>
-  <button onclick="addItemToBackpack('pá')">🪣</button>
-  <button onclick="addItemToBackpack('lagosta')">🦞</button>
-  <button onclick="addItemToBackpack('picareta')">⛏️</button>
-</div>
+    <h4>🎒 Adicionar Itens à Mochila</h4>
+    <button onclick="addItemToBackpack('fruta')">🍎</button>
+    <button onclick="addItemToBackpack('poção')">🍷</button>
+    <button onclick="addItemToBackpack('pedra')">🪨</button>
+    <button onclick="addItemToBackpack('madeira')">🪵</button>
+    <button onclick="addItemToBackpack('tabua')">🧱</button>
+    <button onclick="addItemToBackpack('machado')">🪓</button>
+    <button onclick="addItemToBackpack('pá')">🪣</button>
+    <button onclick="addItemToBackpack('lagosta')">🦞</button>
+    <button onclick="addItemToBackpack('picareta')">⛏️</button>
+  </div>
   <div class="editor-section">
     <h4>🧱 Obstáculos</h4>
     <button onclick="createObstacle()">Criar Obstáculo</button>
@@ -856,15 +866,12 @@ body, .map, .chat, #chat-box {
     <button onclick="removeTerrain()">Remover Terreno</button>
   </div>
   <div class="editor-section">
-  <h4>🌿 Natureza</h4>
-  <button onclick="placeNature('tree')">🌲</button>
-  <button onclick="placeNature('largetree')">🌳</button>
-  <button onclick="placeNature('cacto')">🌵</button>
-  <button onclick="placeNature('rock')">🪨</button>
-  <button onclick="placeNature('poppy')">🌺</button> 
-  </div>
-  <div class="editor-section">
-    <button onclick="closeEditor()">❌ Fechar Painel</button>
+    <h4>🌿 Natureza</h4>
+    <button onclick="placeNature('tree')">🌲</button>
+    <button onclick="placeNature('largetree')">🌳</button>
+    <button onclick="placeNature('cacto')">🌵</button>
+    <button onclick="placeNature('rock')">🪨</button>
+    <button onclick="placeNature('poppy')">🌺</button> 
   </div>
 </div>
 <script>
@@ -3168,6 +3175,7 @@ function placeSmooth(x, y) {
 </body>
 
 </html>
+
 
 
 
