@@ -407,27 +407,6 @@ body, .map, .chat, #chat-box {
   align-items: center;
   justify-content: center;
 }
-#rain-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 998;
-  overflow: hidden;
-}
-.raindrop {
-  position: absolute;
-  width: 3px;
-  height: 30px;
-  background: rgba(135, 204, 230, 0.8);
-  animation-name: fall;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-@keyframes fall {
-  0% { transform: translateY(0); opacity: 1; }
-  100% { transform: translateY(100vh); opacity: 0; }
-}
 #extra-settings-button {
   position: fixed;
   top: 0px;
@@ -521,6 +500,17 @@ body, .map, .chat, #chat-box {
 }
 .menu-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
 .menu-btn:active { transform: scale(0.97); }
+/* Canvas da chuva */
+#rainCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 996; /* acima do mapa, abaixo do HUD */
+}
+/* Filtro azul da chuva */
 </style>
 </head>
 <body>
@@ -591,7 +581,12 @@ body, .map, .chat, #chat-box {
     <button onclick="returnToMenu()">🏠 Menu</button>
   </div>
 </div>
-  <div id="rain-overlay"></div>
+  <!-- Canvas da chuva -->
+<canvas id="rainCanvas"></canvas>
+<!-- Filtro azul da chuva -->
+<div id="rain-filter-overlay"></div>
+<!-- Vignette (escurecimento nas bordas) -->
+<div id="screen-vignette"></div>
   <div id="quickbar" style="
   position: fixed;
   bottom: 0;
@@ -874,9 +869,6 @@ body, .map, .chat, #chat-box {
     <button onclick="placeNature('poppy')">🌺</button> 
   </div>
   <div class="editor-section"> </div>
-  <div class="editor-section"> </div>
-  <div class="editor-section"> </div>
-  <div class="editor-section"> </div>
 </div>
 <script>
   const lightMap = {}; // chave: "x-y", valor: nível de luz (0 a 8)
@@ -887,6 +879,7 @@ function setCharacterDirection(dx, dy, isMoving) {
     "walk-up", "walk-down", "walk-left", "walk-right"
   );
   let dir = lastDirection;
+  // ✅ Só calcula direção nova se estiver realmente se movendo
   if (dx !== 0 || dy !== 0) {
     if (Math.abs(dx) > Math.abs(dy)) {
       dir = dx > 0 ? "right" : "left";
@@ -1464,44 +1457,34 @@ function updateBackpackUI() {
   const drinkWater = () => (thirst = Math.min(100, thirst + 30), updateHUD());
   const campfirePositions = [];
 function updateHUD() {
-    document.getElementById("player-hp").textContent = hp;
-    document.getElementById("player-xp").textContent = xp;
-    document.getElementById("player-level").textContent = level;
-    document.getElementById("characterHpBarHUD").style.width = `${Math.max(0, hp)}%`;
-    document.getElementById("characterHpBarInGame").style.width = `${Math.max(0, hp)}%`;
-    document.getElementById("hunger-value").textContent = hunger;
-    document.getElementById("thirst-value").textContent = thirst;
-    document.getElementById("hunger-bar").style.width = `${hunger}%`;
-    document.getElementById("thirst-bar").style.width = `${thirst}%`;
-    document.getElementById("characterNameDisplay").textContent = `${playerName} Lv.${level}`;
-  }
+  document.getElementById("player-hp").textContent = hp;
+  document.getElementById("player-xp").textContent = xp;
+  document.getElementById("player-level").textContent = level;
+  document.getElementById("characterHpBarHUD").style.width = `${Math.max(0, hp)}%`;
+  document.getElementById("characterHpBarInGame").style.width = `${Math.max(0, hp)}%`;
+  document.getElementById("hunger-value").textContent = hunger;
+  document.getElementById("thirst-value").textContent = thirst;
+  document.getElementById("hunger-bar").style.width = `${hunger}%`;
+  document.getElementById("thirst-bar").style.width = `${thirst}%`;
+  document.getElementById("characterNameDisplay").textContent = `${playerName} Lv.${level}`;
+}
 let currentWeather = "clear";
 let rainTimeout = null;
-let rainInterval = null;
-  const rainOverlay = document.createElement("div");
-rainOverlay.id = "rain-overlay";
-document.body.appendChild(rainOverlay);
-Object.assign(rainOverlay.style, {
-  position: "fixed",
-  width: "100%",
-  height: "100%",
-  pointerEvents: "none",
-  zIndex: "998",
-  overflow: "hidden"
-});
-  const rainFilterOverlay = document.createElement("div");
+let rainActive = false;
+const rainFilterOverlay = document.createElement("div");
 rainFilterOverlay.id = "rain-filter-overlay";
 Object.assign(rainFilterOverlay.style, {
   position: "fixed",
   width: "100%",
   height: "100%",
-  backgroundColor: "rgba(100, 150, 255, 0.2)", // 🔧 Altere a cor aqui
+  backgroundColor: "rgba(100, 150, 255, 0.2)", // 🔧 ajuste da cor
   pointerEvents: "none",
   zIndex: "997",
   display: "none",
   transition: "opacity 1s ease"
 });
-  const screenVignette = document.createElement("div");
+document.body.appendChild(rainFilterOverlay);
+const screenVignette = document.createElement("div");
 screenVignette.id = "screen-vignette";
 Object.assign(screenVignette.style, {
   position: "fixed",
@@ -1516,47 +1499,51 @@ Object.assign(screenVignette.style, {
   transition: "opacity 1s ease"
 });
 document.body.appendChild(screenVignette);
-document.body.appendChild(rainFilterOverlay);
-  const style = document.createElement("style");
-document.head.appendChild(style);
 function updateVignetteVisibility() {
   const shouldShow = currentWeather === "rain" || !isDay;
   screenVignette.style.opacity = shouldShow ? "1" : "0";
 }
-function spawnRaindrops(count = 100) {
-  for (let i = 0; i < count; i++) {
-  const drop = document.createElement("div");
-    drop.className = "raindrop";
-  const startX = Math.random() * window.innerWidth;
-  const delay = Math.random() * 1; // gotas surgem com atraso aleatório
-  const duration = 1 + Math.random(); // mais rápidas: entre 1s e 2s
-    Object.assign(drop.style, {
-      left: `${startX}px`,
-      top: `-30px`, // fora da tela, no topo
-      animationDelay: `${delay}s`,
-      animationDuration: `${duration}s`
-    });
-    rainOverlay.appendChild(drop);
-    setTimeout(() => drop.remove(), duration * 1000 + 500);
-  }
+const rainCanvas = document.getElementById("rainCanvas");
+const ctx = rainCanvas.getContext("2d");
+function resizeRainCanvas() {
+  rainCanvas.width = window.innerWidth;
+  rainCanvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeRainCanvas);
+resizeRainCanvas();
+const drops = Array.from({length: 120}, () => ({
+  x: Math.random() * rainCanvas.width,
+  y: Math.random() * rainCanvas.height,
+  speed: 4 + Math.random() * 4,
+  length: 12 + Math.random() * 8
+}));
+function drawRain() {
+  if (!rainActive) return;
+  ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+  ctx.fillStyle = "rgba(0, 150, 255, 0.7)";
+  drops.forEach(d => {
+    ctx.fillRect(d.x, d.y, 3, d.length * 1.5);
+    d.y += d.speed;
+    if (d.y > rainCanvas.height) {
+      d.y = -20;
+      d.x = Math.random() * rainCanvas.width;
+    }
+  });
+  requestAnimationFrame(drawRain);
 }
 function startRainEffect() {
-  rainOverlay.innerHTML = "";
-  rainFilterOverlay.style.display = "block"; // mostra filtro azul
+  rainActive = true;
+  rainFilterOverlay.style.display = "block";
   rainFilterOverlay.style.opacity = "1";
-  if (rainInterval) clearInterval(rainInterval);
-  rainInterval = setInterval(() => spawnRaindrops(100), 400);
+  drawRain();
 }
 function stopRainEffect() {
-  rainOverlay.innerHTML = "";
-  rainFilterOverlay.style.opacity = "0"; // esconde suavemente
+  rainActive = false;
+  ctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height); // ← limpa o canvas
+  rainFilterOverlay.style.opacity = "0";
   setTimeout(() => {
     rainFilterOverlay.style.display = "none";
   }, 1000);
-  if (rainInterval) {
-    clearInterval(rainInterval);
-    rainInterval = null;
-  }
 }
 function toggleWeather() {
   currentWeather = "rain";
@@ -1565,7 +1552,7 @@ function toggleWeather() {
   rainTimeout = setTimeout(() => {
     currentWeather = "clear";
     stopRainEffect();
-  }, 1200000);
+  }, 1200000); // 20 minutos
 }
 function placeCampfireObstacle() {
   const id = `obstacle-campfire-${gridX}-${gridY}`;
@@ -1783,9 +1770,11 @@ mapContent.addEventListener("click", (e) => {
   plank.dataset.y = y;
   plank.onclick = () => incrementObstacleClicks(id);
   mapContent.appendChild(plank);
+  // ✅ Atualiza textura da plank e vizinhos
   updatePlankTexture(x, y);
   updatePlankTexture(x, y - 1);
   updatePlankTexture(x, y + 1);
+  // ✅ Remove item da mochila
   backpackItems.splice(selectedItemIndex, 1);
   selectedItemIndex = null;
   updateBackpackUIFloating();
@@ -2116,7 +2105,7 @@ let playerDamage = 1; // valor base, pode ser ajustado conforme nível/arma
 function updateBossPosition() {
   if (!boss) return;
   boss.element.style.left = `${boss.x * cellSize}px`;
-  boss.element.style.top = `${boss.y * cellSize - 25}px`;   // desloca 5px para cima
+  boss.element.style.top = `${boss.y * cellSize}px`;
 }
 function updateBossHUD() {
   if (!boss) return;
@@ -2202,22 +2191,15 @@ function createSeededRNG(seed) {
 }
 function spawnBoss(x, y, name = "Dragão", hpValue = 500) {
   const bossElement = Object.assign(document.createElement("div"), {
-    className: "enemy",
+    className: "enemy boss",
     id: "boss"
-  });
-  Object.assign(bossElement.style, {
-    width: "90px",
-    height: "90px",
-    borderRadius: "0%",
-    backgroundImage: "url('dragon.jpeg.png')",
-    backgroundSize: "cover"
   });
   mapContent.appendChild(bossElement);
   boss = {
-    id: "boss",      // ✅
+    id: "boss",
     x, y,
     hp: hpValue,
-    maxHp: hpValue,  // ✅
+    maxHp: hpValue,
     element: bossElement,
     name
   };
@@ -2539,6 +2521,7 @@ function initPreviews() {
         position: "absolute",
         width: `${cellSize}px`,
         height: `${cellSize}px`,
+        pointerEvents: "none",
         transform: "translate(-50%, -50%)",
         display: "none",
         zIndex: 999,
@@ -2602,6 +2585,7 @@ function initPreviews() {
       const exists = document.getElementById(`obstacle-plank-${x}-${y}`);
       Object.assign(plankPreview.style, { left: `${x * cellSize}px`, top: `${y * cellSize}px`, display: "block", opacity: exists ? "0.2" : "0.5" });
     } else plankPreview.style.display = "none";
+
     if (item === "pá") {
       const terrain = terrainMap[`${x}-${y}`];
       const diggable = terrain && terrain !== "water" && terrain !== "deepwater";
@@ -3177,18 +3161,4 @@ function placeSmooth(x, y) {
 }
 </script>
 </body>
-
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
